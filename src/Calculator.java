@@ -11,6 +11,11 @@ public class Calculator extends  JFrame {
     private BigDecimal num1=BigDecimal.ZERO;
     private String operator = "";
     private JTextField screen;
+    private JPanel buttonPanel;
+    private JButton btnClear;
+    private boolean isDarkMode;
+    private boolean isNewNumber = true; //  Helps us know when to wipe the screen
+
 
     //Constructor method with same name as class that runs automatically when we make a new instance in main
     public Calculator() {
@@ -25,6 +30,19 @@ public class Calculator extends  JFrame {
 
     private void initUI() {
         setLayout(new java.awt.BorderLayout(10, 10));
+
+        //Toggle
+        JMenuBar menuBar = new JMenuBar();
+        JMenu viewMenu=new JMenu("View");
+        JMenuItem toggleItem=new JMenuItem("Toggle Dark/Light Mode");
+        //when clicked run theme switcher function
+        toggleItem.addActionListener(e->toggleTheme());
+        viewMenu.add(toggleItem);
+        menuBar.add(viewMenu);
+        setJMenuBar(menuBar);
+
+
+        //Screen
         screen = new JTextField(); //white box
         screen.setEditable(false);
         screen.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 24));
@@ -33,7 +51,7 @@ public class Calculator extends  JFrame {
         screen.setPreferredSize(new java.awt.Dimension(300, 60));
         add(screen, BorderLayout.NORTH);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(4, 4, 10, 10));
+        buttonPanel = new JPanel(new GridLayout(4, 4, 10, 10));
 
         // instead of doing individually we create a list and then calc the coords and place each of them
         String[] btnLabels = {
@@ -70,6 +88,10 @@ public class Calculator extends  JFrame {
 
             btn.addActionListener(e -> {
                 if ("0123456789.".contains(label)) {
+                    if(isNewNumber){
+                        screen.setText("");
+                        isNewNumber=false;
+                    }
                     if (label.equals(".") && screen.getText().contains(".")) {
                         return;
                     }
@@ -79,7 +101,7 @@ public class Calculator extends  JFrame {
                     if (!currentText.isEmpty()) {
                         num1 = new BigDecimal(screen.getText());
                         operator = label;
-                        screen.setText("");
+                        isNewNumber=true;
                     }
                 } else if (label.equals("=")) {
                     String currentText = screen.getText();
@@ -108,7 +130,8 @@ public class Calculator extends  JFrame {
                         // Only update screen if not Error
                         if (!screen.getText().equals("Error")) {
                             screen.setText(String.valueOf(result));
-                            num1 = result; //  To Chain
+                            num1 = result;//  To Chain
+                            isNewNumber = true;
                         }
                     }
                 }
@@ -119,7 +142,7 @@ public class Calculator extends  JFrame {
         }
         add(buttonPanel, BorderLayout.CENTER);
         // 4. THE CLEAR BUTTON (South)
-        JButton btnClear = new JButton("Clear");
+        btnClear = new JButton("Clear");
         btnClear.setFont(new Font("Arial", Font.BOLD, 22));
         btnClear.setBackground(Color.RED.darker());
         btnClear.setForeground(Color.WHITE);
@@ -130,9 +153,43 @@ public class Calculator extends  JFrame {
             screen.setText("");
             num1 = BigDecimal.ZERO;
             operator = "";
+            isNewNumber = true;
         });
 
+
         add(btnClear, BorderLayout.SOUTH);
+        applyThemeColors();
+        pack();
+    }
+
+    private  void toggleTheme(){
+        isDarkMode = !isDarkMode; // Flip the switch
+        applyThemeColors();
+    }
+
+    private  void applyThemeColors(){
+        Color bgColor = isDarkMode ? new Color(50, 50, 50) : Color.WHITE;
+        Color btnColor = isDarkMode ? Color.DARK_GRAY : Color.LIGHT_GRAY;
+        Color txtColor = isDarkMode ? Color.WHITE : Color.BLACK;
+
+        // 1. Update Window & Panel Backgrounds
+        getContentPane().setBackground(bgColor);
+        buttonPanel.setBackground(bgColor);
+
+        // 2. Update Screen
+        screen.setBackground(isDarkMode ? new Color(30, 30, 30) : new Color(230, 230, 230));
+        screen.setForeground(txtColor);
+
+        // 3. Update Grid Buttons
+        for (Component comp : buttonPanel.getComponents()) {
+            if (comp instanceof JButton btn) {
+                btn.setBackground(btnColor);
+                btn.setForeground(txtColor);
+            }
+        }
+
+        // 4. Update Clear Button (improve text readability)
+        btnClear.setForeground(Color.WHITE);
     }
 
 }
