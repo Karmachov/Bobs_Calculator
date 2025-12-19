@@ -1,5 +1,6 @@
 import javax.swing.*;
-//import java.awt.*;
+import java.awt.*;
+
 //JFrame is a window manager
 
 public class Calculator extends  JFrame {
@@ -21,11 +22,16 @@ public class Calculator extends  JFrame {
     }
 
     private void initUI() {
-
+        setLayout(new java.awt.BorderLayout(10, 10));
         screen = new JTextField(); //white box
-        screen.setBounds(30, 50, 225, 50);
         screen.setEditable(false);
-        add(screen);
+        screen.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 24));
+        screen.setHorizontalAlignment(SwingConstants.RIGHT); // Align numbers to the right like a real calc
+        // We use "setPreferredSize" because the layout manager calculates the actual size
+        screen.setPreferredSize(new java.awt.Dimension(300, 60));
+        add(screen, BorderLayout.NORTH);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(4, 4, 10, 10));
 
         // instead of doing individually we create a list and then calc the coords and place each of them
         String[] btnLabels = {
@@ -33,104 +39,99 @@ public class Calculator extends  JFrame {
                 "4", "5", "6", "-",
                 "7", "8", "9", "*",
                 ".", "0", "=", "/",
-                "Clear"
-        };
-        int x = 30;
-        int y = 120;
 
-        for (int i = 0; i < btnLabels.length; i++) {
-            JButton btn = new JButton(btnLabels[i]);
+        };
+
+
+//        btn.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 22));
+//        btn.setBackground(java.awt.Color.DARK_GRAY);
+//        btn.setForeground(java.awt.Color.WHITE);
+//
+//        // --- ADD THESE TWO LINES FOR MAC USERS ---
+//        btn.setOpaque(true);
+//        btn.setBorderPainted(false); //remove 3D borders
+//        btn.setMargin(new java.awt.Insets(0, 0, 0, 0));
+//        String label = btnLabels[i]; // Create a "final" copy for the lambda to use
+
+//        replace the manual coords decision with layout
+
+
+        for (String label : btnLabels) {
+            JButton btn = new JButton(label);
             btn.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 22));
             btn.setBackground(java.awt.Color.DARK_GRAY);
             btn.setForeground(java.awt.Color.WHITE);
-
-            // --- ADD THESE TWO LINES FOR MAC USERS ---
             btn.setOpaque(true);
-            btn.setBorderPainted(false); //remove 3D borders
-            btn.setMargin(new java.awt.Insets(0, 0, 0, 0));
-            String label = btnLabels[i]; // Create a "final" copy for the lambda to use
-            if (btnLabels[i].equals("Clear")) {
-                btn.setBounds(30, 360, 230, 50); // Custom spot for Clear
-            } else {
-                // Standard button positioning
-                btn.setBounds(x, y, 50, 50);
+            btn.setBorderPainted(false);
 
-                x += 60; //50 px button+gap before next beside
-                if ((i + 1) % 4 == 0) {
-                    x = 30;
-                    y += 60; //50 px  row+gap before next below
-                }
-            }
+            //v2 requires a master Listener for all
 
-
-                //v2 requires a master Listener for all but
-
-                btn.addActionListener(e -> {
-                    if ("0123456789.".contains(label)) {
-                        if (label.equals(".") && screen.getText().contains(".")) {
-                            return;
-                        }
-                        screen.setText(screen.getText() + label);
-                    } else if (label.equals("Clear")) {
+            btn.addActionListener(e -> {
+                if ("0123456789.".contains(label)) {
+                    if (label.equals(".") && screen.getText().contains(".")) {
+                        return;
+                    }
+                    screen.setText(screen.getText() + label);
+                } else if ("+-*/".contains(label)) {
+                    String currentText = screen.getText();
+                    if (!currentText.isEmpty()) {
+                        num1 = Double.parseDouble(currentText);
+                        operator = label;
                         screen.setText("");
-                    } else if ("+-*/".contains(label)) {
-                        String currentText = screen.getText();
-                        if (!currentText.isEmpty()) {
-                            num1 = Double.parseDouble(currentText);
-                            operator = label;
-                            screen.setText("");
-                        }
-                    } else if (label.equals("=")) {
-                        String currentText = screen.getText();
-                        if (!currentText.isEmpty()) {
-                            double num2 = Double.parseDouble(currentText);
-                            double result = 0;
+                    }
+                } else if (label.equals("=")) {
+                    String currentText = screen.getText();
+                    if (!currentText.isEmpty()) {
+                        double num2 = Double.parseDouble(currentText);
+                        double result = 0;
 
-                            switch (operator) {
-                                case "+":
-                                    result = num1 + num2;
-                                    break;
-                                case "-":
-                                    result = num1 - num2;
-                                    break;
-                                case "*":
-                                    result = num1 * num2;
-                                    break;
-                                case "/":
-                                    if (num2 != 0) result = num1 / num2;
-                                    else screen.setText("Error");
-                                    break;
-                            }
-                            // Only update screen if not Error
-                            if (!screen.getText().equals("Error")) {
-                                screen.setText(String.valueOf(result));
-                                num1 = result; //  To Chain
-                            }
+                        switch (operator) {
+                            case "+":
+                                result = num1 + num2;
+                                break;
+                            case "-":
+                                result = num1 - num2;
+                                break;
+                            case "*":
+                                result = num1 * num2;
+                                break;
+                            case "/":
+                                if (num2 != 0) result = num1 / num2;
+                                else screen.setText("Error");
+                                break;
+                        }
+                        // Only update screen if not Error
+                        if (!screen.getText().equals("Error")) {
+                            screen.setText(String.valueOf(result));
+                            num1 = result; //  To Chain
                         }
                     }
-                });
+                }
+            });
 
 
-            add(btn);
+            buttonPanel.add(btn);
         }
+        add(buttonPanel, BorderLayout.CENTER);
+        // 4. THE CLEAR BUTTON (South)
+        JButton btnClear = new JButton("Clear");
+        btnClear.setFont(new Font("Arial", Font.BOLD, 22));
+        btnClear.setBackground(Color.RED.darker());
+        btnClear.setForeground(Color.WHITE);
+        btnClear.setOpaque(true);
+        btnClear.setBorderPainted(false);
+        btnClear.setPreferredSize(new Dimension(300, 50));
+        btnClear.addActionListener(e -> {
+            screen.setText("");
+            num1 = 0;
+            operator = "";
+        });
 
-
+        add(btnClear, BorderLayout.SOUTH);
     }
 
-    public static void main(String[] args) {
-        try {
-            // FORCE "Metal" Look and Feel (Same on Mac/Windows/Linux)
-            //By default, Swing tries to mimic macOS buttons ("Aqua").
-            // Aqua buttons have strict rules about minimum size and padding that break custom layouts.
-            // CrossPlatformLookAndFeel (also called "Metal") is Java's own style. It obeys every command you give it (colors, margins, sizes) perfectly.
-            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-        } catch (Exception e) {
-            java.util.logging.Logger.getLogger(Calculator.class.getName())
-                    .log(java.util.logging.Level.SEVERE, "Error setting Look and Feel", e);
-        }
-        new Calculator();
-    }
 }
+
 
 
 
