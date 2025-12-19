@@ -1,12 +1,14 @@
 import javax.swing.*;
 import java.awt.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 //JFrame is a window manager
 
 public class Calculator extends  JFrame {
     //we cannot modify a result variable inside a lambda  as variables inside these lambda expressions must be final
     // so we add global variables---> v2 we make these instance variables so that they belong to the object
-    private double num1 = 0;
+    private BigDecimal num1=BigDecimal.ZERO;
     private String operator = "";
     private JTextField screen;
 
@@ -75,28 +77,31 @@ public class Calculator extends  JFrame {
                 } else if ("+-*/".contains(label)) {
                     String currentText = screen.getText();
                     if (!currentText.isEmpty()) {
-                        num1 = Double.parseDouble(currentText);
+                        num1 = new BigDecimal(screen.getText());
                         operator = label;
                         screen.setText("");
                     }
                 } else if (label.equals("=")) {
                     String currentText = screen.getText();
                     if (!currentText.isEmpty()) {
-                        double num2 = Double.parseDouble(currentText);
-                        double result = 0;
+                        BigDecimal num2 = new BigDecimal(screen.getText());
+                        BigDecimal result = BigDecimal.ZERO;
+
+                        // BigDecimal is a Java class that calculates math exactly the way humans
+                        // do—digit by digit—rather than approximating it in binary.
 
                         switch (operator) {
                             case "+":
-                                result = num1 + num2;
+                                result = num1.add(num2);
                                 break;
                             case "-":
-                                result = num1 - num2;
+                                result = num1.subtract(num2);
                                 break;
                             case "*":
-                                result = num1 * num2;
+                                result = num1.multiply(num2);
                                 break;
                             case "/":
-                                if (num2 != 0) result = num1 / num2;
+                                if (!num2.equals(BigDecimal.ZERO)) result = num1.divide(num2, 10,RoundingMode.HALF_UP).stripTrailingZeros(); // we need rounding mode with 10 dp
                                 else screen.setText("Error");
                                 break;
                         }
@@ -123,7 +128,7 @@ public class Calculator extends  JFrame {
         btnClear.setPreferredSize(new Dimension(300, 50));
         btnClear.addActionListener(e -> {
             screen.setText("");
-            num1 = 0;
+            num1 = BigDecimal.ZERO;
             operator = "";
         });
 
